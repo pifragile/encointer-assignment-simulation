@@ -89,10 +89,10 @@ class Participant():
 
 def test_core_functions():
 	# number of participants
-	N = 1200
+	N = 1201
 
 	# number of meetups
-	n = 101
+	n = 100
 
 	s1 = random.choice(primes)
 	#s1 = 425374829251
@@ -160,12 +160,12 @@ def test_distribution():
 	num_locations = 10000
 
 	num_bootstrappers = 12
-	num_reputables = 10
+	num_reputables = 33
 	num_endorsees = 123
 	num_newbies = 3010
 
 	# number of participants per meetup if distribution was strictly equal
-	MEETUP_MULTIPLIER = 12
+	MEETUP_MULTIPLIER = 11
 
 	assert(num_locations >=2)
 
@@ -190,21 +190,17 @@ def test_distribution():
 	num_meetups = int(math.ceil(num_participants / MEETUP_MULTIPLIER))
 	num_allowed_bootstrappers = num_bootstrappers
 
+	num_allowed_bootstrappers_reputables = num_allowed_bootstrappers + num_allowed_reputables
+
 	params_by_cat = {
-	'bootstrappers':{
+	'bootstrappers_reputables':{
 		's1' : random.choice(primes),
 		's2' : random.choice(primes),
-		'N' : num_meetups,
+		'N' : find_prime_below(num_allowed_bootstrappers_reputables),
 		'n' : num_meetups,
 		'prefix' : 'B'
 	},
-	'reputables':{
-		's1' : random.choice(primes),
-		's2' : random.choice(primes),
-		'N' : find_prime_below(num_allowed_reputables),
-		'n' : num_meetups,
-		'prefix' : 'R'
-	},
+
 	'endorsees':{
 		's1' : random.choice(primes),
 		's2' : random.choice(primes),
@@ -222,21 +218,44 @@ def test_distribution():
 
 	}
 
-
 	meetups = [[] for _ in range(num_meetups)]
-	# distribute participants
-	for cat in ['bootstrappers', 'reputables', 'endorsees', 'newbies']:
-		params = params_by_cat[cat]
-		num = locals()[f'num_allowed_{cat}']
-		s1 = params['s1']
-		s2 = params['s2']
-		N = params['N']
-		n = params['n']
-		prefix = params['prefix']
+	# distribute boostrappers and reputables
+	s1 = random.choice(primes)
+	s2 = random.choice(primes)
+	n = find_prime_below(num_allowed_bootstrappers + num_allowed_reputables)
+	N = num_meetups
+	prefix = 'N'
+	for i in range(num_allowed_bootstrappers):
+		meetup = get_meetup_location(i, N, n, s1, s2)
+		meetups[meetup].append(f'B{i}')
 
-		for i in range(num):
-			meetup = get_meetup_location(i, N, n, s1, s2)
-			meetups[meetup].append(f'{prefix}{i}')
+	for i in range(num_allowed_reputables):
+		i += num_allowed_bootstrappers
+		meetup = get_meetup_location(i, N, n, s1, s2)
+		meetups[meetup].append(f'R{i}')
+
+
+	# distribute endorsees
+	s1 = random.choice(primes)
+	s2 = random.choice(primes)
+	n = find_prime_below(num_allowed_endorsees)
+	N = num_meetups
+	prefix = 'N'
+	for i in range(num_allowed_endorsees):
+		meetup = get_meetup_location(i, N, n, s1, s2)
+		meetups[meetup].append(f'E{i}')
+
+	# distribute_newbies
+	s1 = random.choice(primes)
+	s2 = random.choice(primes)
+	n = find_prime_below(num_allowed_newbies)
+	N = num_meetups
+	prefix = 'N'
+	for i in range(num_allowed_newbies):
+		meetup = get_meetup_location(i, N, n, s1, s2)
+		meetups[meetup].append(f'N{i}')
+
+
 
 	for m in meetups:
 		print(m)
