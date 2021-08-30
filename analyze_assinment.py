@@ -51,6 +51,31 @@ def find_prime_below(n):
 
 	return 2
 
+def find_prime_above(n):
+	if not n % 2:
+		n = n+1
+	for i in range(n, 2 * n, 2):
+		if is_prime(i):
+			return i
+
+	return 2
+
+
+def find_nearest_prime(n):
+	if not n % 2:
+		n = n-1
+	i = 0
+	f = 1
+	while True:
+		n = n + i * f
+		if is_prime(n):
+			return n
+		i +=1
+		f * -1
+
+	return 2
+
+
 def egcd(a, b):
     if a == 0:
         return (b, 0, 1)
@@ -207,11 +232,14 @@ def calculate_meetups(num_locations, num_bootstrappers, num_reputables, num_endo
 	"""
 
 	# number of participants per meetup if distribution was strictly equal
-	MEETUP_MULTIPLIER = 11
+	MEETUP_MULTIPLIER = 10
 
 	assert(num_locations >=2)
 
-	num_meetups = min(num_locations, int(num_bootstrappers + num_reputables))
+	# Tradeoff: if we take the prime below num_bootstrappers + num_reputables
+	# we accept fewer meetings, but we make sure that there are no meetups
+	# with no bootstrapper/reputable
+	num_meetups = min(num_locations, num_bootstrappers + num_reputables)
 
 	available_slots = int(num_meetups * MEETUP_MULTIPLIER - num_bootstrappers)
 
@@ -241,25 +269,24 @@ def calculate_meetups(num_locations, num_bootstrappers, num_reputables, num_endo
 	# at least one bootstrapper or reputable
 	s1 = random.choice(primes)
 	s2 = random.choice(primes)
-	n = find_prime_below(num_allowed_bootstrappers + num_allowed_reputables)
-	N = num_meetups
-	prefix = 'N'
+	N = find_prime_above(num_allowed_bootstrappers + num_allowed_reputables)
+	n = num_meetups
+	print(s1, s2, N, n)
 	for i in range(num_allowed_bootstrappers):
 		meetup = get_meetup_location(i, N, n, s1, s2)
 		meetups[meetup].append(f'B{i}')
 
 	for i in range(num_allowed_reputables):
-		i += num_allowed_bootstrappers
-		meetup = get_meetup_location(i, N, n, s1, s2)
+		j = i + num_allowed_bootstrappers
+		meetup = get_meetup_location(j, N, n, s1, s2)
 		meetups[meetup].append(f'R{i}')
 
 
 	# distribute endorsees
 	s1 = random.choice(primes)
 	s2 = random.choice(primes)
-	n = find_prime_below(num_allowed_endorsees)
-	N = num_meetups
-	prefix = 'N'
+	N = find_prime_above(num_allowed_endorsees)
+	n = num_meetups
 	for i in range(num_allowed_endorsees):
 		meetup = get_meetup_location(i, N, n, s1, s2)
 		meetups[meetup].append(f'E{i}')
@@ -267,9 +294,8 @@ def calculate_meetups(num_locations, num_bootstrappers, num_reputables, num_endo
 	# distribute_newbies
 	s1 = random.choice(primes)
 	s2 = random.choice(primes)
-	n = find_prime_below(num_allowed_newbies)
-	N = num_meetups
-	prefix = 'N'
+	N = find_prime_above(num_allowed_newbies)
+	n = num_meetups
 	for i in range(num_allowed_newbies):
 		meetup = get_meetup_location(i, N, n, s1, s2)
 		meetups[meetup].append(f'N{i}')
@@ -329,4 +355,49 @@ if __name__ == '__main__':
 								first = False
 							writer.writerow(row)
 	print(f'Done in {time.time() - t} seconds')
+
+
+
+# Problem
+# if the output of get_meetup_location are as follows:
+# x
+# x - y
+# x - 2*y
+# ...
+# z
+# z - y
+# z - 2*y
+
+# and y happens to be n
+# then there are consecutive groups of numbers that map to the same location
+# this becaomes a problem together with the fact that we take the prime below 
+# the number of bootstrappers and reuptables, because at the point where it wraps around,
+# all the consequtive numbers land in the same location and this location will have
+# too many participants
+
+# Mitigations:
+# 1. do not take prime below
+# 2. check for this property and do not take the primes if it is the case
+# 3. take prime above insetad of below, and accept that there will be meetups without reputable or bootstrapper
+# --> this looks like a tradeoff of randomness vs. equal distribution
+
+
+
+# example:
+# 	s1 = 72914169386263772687
+# 	s2 = 74123226946075602539
+	# num_locations = 28179
+	# num_bootstrappers = 3
+	# num_reputables = 2761
+	# num_endorsees = 437
+	# num_newbies = 9951
+	# test_distributions(num_locations, num_bootstrappers, num_reputables, num_endorsees, num_newbies)
+
+
+
+# if we take prime above and accept some meetups without bootstrapper and reputable
+# prove that there can be no more than 12 participants
+
+
+
 
