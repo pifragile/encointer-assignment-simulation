@@ -408,8 +408,8 @@ if __name__ == '__main__':
         first = True
         for num_locations in [5] + random.sample(range(6, 50000), 5) + [50000]:
             for num_bootstrappers in [3, 6, 12]:
-                for num_reputables in [0] + random.sample(range(0, 50 * num_bootstrappers), 3) + [10000]:
-                    for num_endorsees in [0] + random.sample(range(0, 10000), 3) + [10000]:
+                for num_reputables in [0] + random.sample(range(0, 10000), 3) + [10000]:
+                    for num_endorsees in [0] + random.sample(range(0, 50 * num_bootstrappers), 3) + [10000]:
                         for num_newbies in [0] + random.sample(range(0, 10000), 3) + [10000]:
                             for i in range(2):
                                 config = {
