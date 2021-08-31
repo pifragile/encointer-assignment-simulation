@@ -409,27 +409,26 @@ if __name__ == '__main__':
         for num_locations in [5] + random.sample(range(6, 50000), 5) + [50000]:
             for num_bootstrappers in [3, 6, 12]:
                 for num_reputables in [0] + random.sample(range(0, 10000), 3) + [10000]:
-                    for num_endorsees in [0] + random.sample(range(0, 50 * num_bootstrappers), 3) + [10000]:
+                    for num_endorsees in [0] + random.sample(range(0, 50 * num_bootstrappers), 4):
                         for num_newbies in [0] + random.sample(range(0, 10000), 3) + [10000]:
-                            for i in range(2):
-                                config = {
-                                    'num_locations': num_locations,
-                                    'num_bootstrappers': num_bootstrappers,
-                                    'num_reputables': num_reputables,
-                                    'num_endorsees': num_endorsees,
-                                    'num_newbies': num_newbies
-                                }
+                            config = {
+                                'num_locations': num_locations,
+                                'num_bootstrappers': num_bootstrappers,
+                                'num_reputables': num_reputables,
+                                'num_endorsees': num_endorsees,
+                                'num_newbies': num_newbies
+                            }
 
-                                data = test_distributions(num_locations, num_bootstrappers, num_reputables,
-                                                          num_endorsees, num_newbies)
-                                row = {**config, **data}
+                            data = test_distributions(num_locations, num_bootstrappers, num_reputables,
+                                                      num_endorsees, num_newbies)
+                            row = {**config, **data}
 
-                                if first:
-                                    fieldnames = row.keys()
-                                    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-                                    writer.writeheader()
-                                    first = False
-                                writer.writerow(row)
+                            if first:
+                                fieldnames = row.keys()
+                                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                                writer.writeheader()
+                                first = False
+                            writer.writerow(row)
     print(f'Done in {time.time() - t} seconds')
 
 # Problem
