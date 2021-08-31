@@ -188,6 +188,46 @@ def get_participants_full(meetup_index, num_locations, num_b, num_r, num_e, num_
     return result
 
 
+def validate_equal_mapping(num_participants, N, n, s1, s2):
+    # show that this loop is bounded by the gap between prime numbers in a sensible range
+    meetup_index_count = {}
+
+    # let gap = num_participants - N
+    # if there are no more than ceil(gap / n) participants per meetup in the range(N, num_participants)
+    # the distribution is equal
+    meetup_index_count_max = math.ceil((num_participants - N) / n)
+    for i in range(N, num_participants):
+        meetup_index = get_meetup_location(i, N, n, s1, s2)
+
+        if not meetup_index in meetup_index_count.keys():
+            meetup_index_count[meetup_index] = 1
+        else:
+            meetup_index_count[meetup_index] += 1
+            if meetup_index_count[meetup_index] > meetup_index_count_max:
+                print_colored('SKIPPED', bcolors.FAIL)
+                return False
+    return True
+
+
+def get_N_s1_s3(num_participants, num_locations):
+
+    # we chose N to be a prime number, because this prevents attacks, where an attacker, registers new users in
+    # a specific order and fills up the users such that N and n are not coprime which will let him guess the
+    # other particiopants in his meetup
+    # make example with 100 meetups, 1200 participants, show no matter s1 and s2, the gaps are always 100
+    N = find_prime_below(num_participants)
+
+    # we have to make sure that all the numbers between N and num_participants map to different locations,
+    # like this we can make sure that the participants are split equally and the maximum number of participants
+    # per meetup is num_participants // num_locations + 1
+    while True:
+        s1 = random.choice(primes)
+        s2 = random.choice(primes)
+        print(s1, s2, num_participants, N, num_locations)
+        if validate_equal_mapping(num_participants, N, num_locations, s1, s2):
+            break
+    return N, s1, s2
+
 ###
 ###
 ###
@@ -310,7 +350,9 @@ def calculate_meetups(num_locations, num_bootstrappers, num_reputables, num_endo
 
     assert (num_locations >= 2)
 
-    num_meetups = min(num_locations, num_bootstrappers + num_reputables)
+    # Tradeoff: if we only accept prime_below number of meetups, we have the same number of meetups as
+    # N and so, we will have at least 1 bootstrapper or reputable per meetup
+    num_meetups = min(num_locations, find_prime_below(num_bootstrappers + num_reputables))
 
     available_slots = int(num_meetups * MEETUP_MULTIPLIER - num_bootstrappers)
 
@@ -330,18 +372,14 @@ def calculate_meetups(num_locations, num_bootstrappers, num_reputables, num_endo
     num_meetups = int(math.ceil(num_participants / MEETUP_MULTIPLIER))
     num_allowed_bootstrappers = num_bootstrappers
 
-    num_allowed_bootstrappers_reputables = num_allowed_bootstrappers + num_allowed_reputables
 
     meetups = [[] for _ in range(num_meetups)]
 
     # distribute boostrappers and reputables
     # they are distributed in one go to minimize the number of meetups without
     # at least one bootstrapper or reputable
-    s1_br = random.choice(primes)
-    s2_br = random.choice(primes)
-    N = find_prime_above(num_allowed_bootstrappers + num_allowed_reputables)
     n = num_meetups
-    print(s1_br, s2_br, N, n)
+    N, s1_br, s2_br = get_N_s1_s3(num_allowed_bootstrappers + num_allowed_reputables, n)
     for i in range(num_allowed_bootstrappers):
         meetup = get_meetup_location(i, N, n, s1_br, s2_br)
         meetups[meetup].append(f'B{i}')
@@ -352,19 +390,13 @@ def calculate_meetups(num_locations, num_bootstrappers, num_reputables, num_endo
         meetups[meetup].append(f'R{i}')
 
     # distribute endorsees
-    s1_e = random.choice(primes)
-    s2_e = random.choice(primes)
-    N = find_prime_above(num_allowed_endorsees)
-    n = num_meetups
+    N, s1_e, s2_e = get_N_s1_s3(num_allowed_endorsees, n)
     for i in range(num_allowed_endorsees):
         meetup = get_meetup_location(i, N, n, s1_e, s2_e)
         meetups[meetup].append(f'E{i}')
 
     # distribute_newbies
-    s1_n = random.choice(primes)
-    s2_n = random.choice(primes)
-    N = find_prime_above(num_allowed_newbies)
-    n = num_meetups
+    N, s1_n, s2_n = get_N_s1_s3(num_allowed_newbies, n)
     for i in range(num_allowed_newbies):
         meetup = get_meetup_location(i, N, n, s1_n, s2_n)
         meetups[meetup].append(f'N{i}')
