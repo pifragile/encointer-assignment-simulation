@@ -2,6 +2,7 @@ import csv
 import math
 import random
 import time
+import sys
 
 from primes import primes
 
@@ -144,7 +145,7 @@ def get_meetup_location(participant_index, N, n, s1, s2):
     return ((participant_index * s1 + s2) % N) % n
 
 
-def get_participants(meetup_index, N, n, s1, s2):
+def get_participants(meetup_index, N, n, s1, s2, num_participants=None):
     # this function is simply the inversed formula of get_meetup_location
     result = []
     for i in range(int(math.ceil((N - meetup_index) / n))):
@@ -152,34 +153,35 @@ def get_participants(meetup_index, N, n, s1, s2):
         t2 = modinv(s1, N)
         t3 = (t1 * t2) % N
         result.append(t3)
+
+        # when we chose prime_below, the participants in the gap are not represented by get_participants, so we add them here
+        if num_participants and t3 < num_participants - N:
+            result.append(t3 + N)
     return result
 
 
 def get_participants_full(meetup_index, num_locations, num_b, num_r, num_e, num_n, s1_br, s2_br, s1_e, s2_e, s1_n,
-                          s2_n):
+                          s2_n, N_br, N_e, N_n):
     n = num_locations
     result = []
 
     # bootstrappers
     num_br = num_b + num_r
-    N_br = find_prime_above(num_br)
-    participants = get_participants(meetup_index, N_br, n, s1_br, s2_br)
+    participants = get_participants(meetup_index, N_br, n, s1_br, s2_br, num_br)
+
     for p in participants:
-        if p < num_br:
-            if p < num_b:
-                result.append(f'B{p}')
-            else:
-                result.append((f'R{p - num_b}'))
+        if p < num_b:
+            result.append(f'B{p}')
+        else:
+            result.append((f'R{p - num_b}'))
 
     # endorsees
-    N_e = find_prime_above(num_e)
     participants = get_participants(meetup_index, N_e, n, s1_e, s2_e)
     for p in participants:
         if p < num_e:
             result.append(f'E{p}')
 
     # newbies
-    N_n = find_prime_above(num_n)
     participants = get_participants(meetup_index, N_n, n, s1_n, s2_n)
     for p in participants:
         if p < num_n:
@@ -210,7 +212,6 @@ def validate_equal_mapping(num_participants, N, n, s1, s2):
 
 
 def get_N_s1_s3(num_participants, num_locations):
-
     # we chose N to be a prime number, because this prevents attacks, where an attacker, registers new users in
     # a specific order and fills up the users such that N and n are not coprime which will let him guess the
     # other particiopants in his meetup
@@ -220,13 +221,18 @@ def get_N_s1_s3(num_participants, num_locations):
     # we have to make sure that all the numbers between N and num_participants map to different locations,
     # like this we can make sure that the participants are split equally and the maximum number of participants
     # per meetup is num_participants // num_locations + 1
+    skip_count = 0
     while True:
         s1 = random.choice(primes)
         s2 = random.choice(primes)
         print(s1, s2, num_participants, N, num_locations)
         if validate_equal_mapping(num_participants, N, num_locations, s1, s2):
             break
+        else:
+            skip_count += 1
+        print_colored(f'Skipped primes X times: {skip_count}', bcolors.FAIL)
     return N, s1, s2
+
 
 ###
 ###
@@ -254,7 +260,6 @@ def test_core_functions():
         participants.sort()
         expected_participants = meetups[j]
         expected_participants.sort()
-        print(participants)
         assert (participants == expected_participants)
 
 
@@ -330,10 +335,10 @@ def analyze_meetups(meetups):
             }
 
 
-def validate_meetups(meetups, num_locations, num_b, num_r, num_e, num_n, s1_br, s2_br, s1_e, s2_e, s1_n, s2_n):
+def validate_meetups(meetups, num_locations, num_b, num_r, num_e, num_n, s1_br, s2_br, s1_e, s2_e, s1_n, s2_n, N_br, N_e, N_n):
     for idx, meetup in enumerate(meetups):
         expected_meetup = get_participants_full(idx, num_locations, num_b, num_r, num_e, num_n, s1_br, s2_br, s1_e,
-                                                s2_e, s1_n, s2_n)
+                                                s2_e, s1_n, s2_n, N_br, N_e, N_n)
         expected_meetup.sort()
         meetup.sort()
         assert (expected_meetup == meetup)
@@ -372,43 +377,46 @@ def calculate_meetups(num_locations, num_bootstrappers, num_reputables, num_endo
     num_meetups = int(math.ceil(num_participants / MEETUP_MULTIPLIER))
     num_allowed_bootstrappers = num_bootstrappers
 
-
     meetups = [[] for _ in range(num_meetups)]
 
     # distribute boostrappers and reputables
     # they are distributed in one go to minimize the number of meetups without
     # at least one bootstrapper or reputable
     n = num_meetups
-    N, s1_br, s2_br = get_N_s1_s3(num_allowed_bootstrappers + num_allowed_reputables, n)
+    N_br, s1_br, s2_br = get_N_s1_s3(num_allowed_bootstrappers + num_allowed_reputables, n)
     for i in range(num_allowed_bootstrappers):
-        meetup = get_meetup_location(i, N, n, s1_br, s2_br)
+        meetup = get_meetup_location(i, N_br, n, s1_br, s2_br)
         meetups[meetup].append(f'B{i}')
 
     for i in range(num_allowed_reputables):
         j = i + num_allowed_bootstrappers
-        meetup = get_meetup_location(j, N, n, s1_br, s2_br)
+        meetup = get_meetup_location(j, N_br, n, s1_br, s2_br)
         meetups[meetup].append(f'R{i}')
 
     # distribute endorsees
-    N, s1_e, s2_e = get_N_s1_s3(num_allowed_endorsees, n)
+    s1_e = random.choice(primes)
+    s2_e = random.choice(primes)
+    N_e = find_prime_above(num_allowed_endorsees)
     for i in range(num_allowed_endorsees):
-        meetup = get_meetup_location(i, N, n, s1_e, s2_e)
+        meetup = get_meetup_location(i, N_e, n, s1_e, s2_e)
         meetups[meetup].append(f'E{i}')
 
     # distribute_newbies
-    N, s1_n, s2_n = get_N_s1_s3(num_allowed_newbies, n)
+    s1_n = random.choice(primes)
+    s2_n = random.choice(primes)
+    N_n = find_prime_above(num_allowed_newbies)
     for i in range(num_allowed_newbies):
-        meetup = get_meetup_location(i, N, n, s1_n, s2_n)
+        meetup = get_meetup_location(i, N_n, n, s1_n, s2_n)
         meetups[meetup].append(f'N{i}')
 
     if validate:
         validate_meetups(meetups, num_meetups, num_allowed_bootstrappers, num_allowed_reputables, num_allowed_endorsees,
-                         num_allowed_newbies, s1_br, s2_br, s1_e, s2_e, s1_n, s2_n)
+                         num_allowed_newbies, s1_br, s2_br, s1_e, s2_e, s1_n, s2_n, N_br, N_e, N_n)
 
     return meetups
 
 
-def test_distributions(num_locations, num_bootstrappers, num_reputables, num_endorsees, num_newbies):
+def test_distributions(num_locations, num_bootstrappers, num_reputables, num_endorsees, num_newbies, validate=False):
     """
     Change parameters here and run the script in order to get the distribution of participants
     and some heuristics printed to the console.
@@ -419,11 +427,12 @@ def test_distributions(num_locations, num_bootstrappers, num_reputables, num_end
 			Number of Locations = {num_locations}
 			Number of Bootstrappers = {num_bootstrappers}
 			Number of Reputables = {num_reputables}
-			Number of Endorseeds = {num_endorsees}
+			Number of Endorsees = {num_endorsees}
 			Number of Newbies = {num_newbies}
 		""")
 
-    meetups = calculate_meetups(num_locations, num_bootstrappers, num_reputables, num_endorsees, num_newbies)
+    meetups = calculate_meetups(num_locations, num_bootstrappers, num_reputables, num_endorsees, num_newbies,
+                                validate=validate)
     for m in meetups:
         print(m)
     data = analyze_meetups(meetups)
@@ -433,35 +442,50 @@ def test_distributions(num_locations, num_bootstrappers, num_reputables, num_end
     return data
 
 
-if __name__ == '__main__':
-    write = None
-    t = time.time()
-    with open(f'analysis.csv', 'w', newline='') as csvfile:
+def run_benchmark(identifier, validate, length):
+    writer = None
+    with open(f'analysis_{identifier}.csv', 'w', newline='') as csvfile:
         first = True
-        for num_locations in [5] + random.sample(range(6, 50000), 5) + [50000]:
+        for num_locations in [5] + random.sample(range(6, 50000), length) + [50000]:
             for num_bootstrappers in [3, 6, 12]:
-                for num_reputables in [0] + random.sample(range(0, 10000), 3) + [10000]:
-                    for num_endorsees in [0] + random.sample(range(0, 50 * num_bootstrappers), 4):
-                        for num_newbies in [0] + random.sample(range(0, 10000), 3) + [10000]:
-                            config = {
-                                'num_locations': num_locations,
-                                'num_bootstrappers': num_bootstrappers,
-                                'num_reputables': num_reputables,
-                                'num_endorsees': num_endorsees,
-                                'num_newbies': num_newbies
-                            }
+                for num_reputables in [0] + random.sample(range(0, 10000), length) + [10000]:
+                    for num_endorsees in [0] + random.sample(range(0, 50 * num_bootstrappers), length + 1):
+                        for num_newbies in [0] + random.sample(range(0, 10000), length) + [10000]:
+                            for _ in range(3):
+                                config = {
+                                    'num_locations': num_locations,
+                                    'num_bootstrappers': num_bootstrappers,
+                                    'num_reputables': num_reputables,
+                                    'num_endorsees': num_endorsees,
+                                    'num_newbies': num_newbies
+                                }
 
-                            data = test_distributions(num_locations, num_bootstrappers, num_reputables,
-                                                      num_endorsees, num_newbies)
-                            row = {**config, **data}
+                                data = test_distributions(num_locations, num_bootstrappers, num_reputables,
+                                                          num_endorsees, num_newbies, validate=validate)
+                                row = {**config, **data}
 
-                            if first:
-                                fieldnames = row.keys()
-                                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-                                writer.writeheader()
-                                first = False
-                            writer.writerow(row)
-    print(f'Done in {time.time() - t} seconds')
+                                if first:
+                                    fieldnames = row.keys()
+                                    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                                    writer.writeheader()
+                                    first = False
+                                writer.writerow(row)
+
+
+if __name__ == '__main__':
+    for i in range(10):
+        run_name = f'{i}_validated'
+        print(f'Running benchmark {i}')
+        t = time.time()
+        stdout = sys.stdout
+        sys.stdout = open(f'{run_name}.txt', 'w')
+        run_benchmark(run_name, True, length=8)
+        sys.stdout = stdout
+
+        print(f'Done in {time.time() - t} seconds')
+
+    # data = test_distributions(10000, 12, 10000,
+    #                           120, 10000, validate=True)
 
 # Problem
 # if the output of get_meetup_location are as follows:
@@ -511,3 +535,15 @@ if __name__ == '__main__':
 # maybe not prove, not accept up to xyz.
 
 # i dont know if i am capable to come up with such a proof.
+
+
+# now check is implemented that the distribution is more or less equal, but still:
+#
+# 9973/1026=9.7, so 10 possible +1 for the gap
+# and for both endorsees and newbies: each time two possible, so we can get max of 15 per bucket in this example
+# s1, s2, num_{br, e, n}, prime_below, n
+# 73268479431991309189 41539885204528894193 10003 9973 1026
+# 49255231677046994971 76359690132928170641 126 113 1026
+# 58743404802895572679 42369326875634271187 122 113 1026
+
+# claim: for meetup multiplier M, we have M + 6 as an upper bound for meetup participants

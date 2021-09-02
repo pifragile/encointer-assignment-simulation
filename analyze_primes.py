@@ -15,7 +15,7 @@ primes = []
 for row in file:
 	num = int(row[0])
 	primes.append(num)
-	if num > 1000:
+	if num > 100000:
 		break
 
 print(f'analyzing primes up to {primes[-1]}')
