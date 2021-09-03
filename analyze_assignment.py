@@ -493,14 +493,6 @@ if __name__ == '__main__':
 
     print(f'Done after {time.time() - t} seconds.')
 
-    t = time.time()
-    print('Starting sequential')
-    for i in range(10):
-        run_name = f'{i}_validated'
-        run_benchmark(run_name, True, 2)
-
-    print(f'Done after {time.time() - t} seconds.')
-
 
     # data = test_distributions(10000, 12, 10000,
     #                           120, 10000, validate=True)
