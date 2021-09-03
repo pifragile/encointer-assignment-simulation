@@ -486,7 +486,7 @@ if __name__ == '__main__':
     pool = mp.Pool(num_workers)
     for i in range(10):
         run_name = f'{i}_validated'
-        pool.apply_async(run_benchmark, args=(run_name, True, 2,))
+        pool.apply_async(run_benchmark, args=(run_name, True, 8,))
 
     pool.close()
     pool.join()
