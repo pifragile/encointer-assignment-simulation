@@ -3,7 +3,7 @@ import math
 import random
 import time
 import sys
-
+import multiprocessing as mp
 from primes import primes
 
 
@@ -443,6 +443,11 @@ def test_distributions(num_locations, num_bootstrappers, num_reputables, num_end
 
 
 def run_benchmark(identifier, validate, length):
+    print(f'Running benchmark {identifier}')
+    t = time.time()
+    stdout = sys.stdout
+    sys.stdout = open(f'{identifier}.txt', 'w')
+
     writer = None
     with open(f'analysis_{identifier}.csv', 'w', newline='') as csvfile:
         first = True
@@ -470,19 +475,32 @@ def run_benchmark(identifier, validate, length):
                                     writer.writeheader()
                                     first = False
                                 writer.writerow(row)
+    sys.stdout = stdout
+    print(f'Process {identifier} done in {time.time() - t} seconds')
 
 
 if __name__ == '__main__':
+    t = time.time()
+    print('Starting Processes')
+    num_workers = mp.cpu_count()
+    pool = mp.Pool(num_workers)
     for i in range(10):
         run_name = f'{i}_validated'
-        print(f'Running benchmark {i}')
-        t = time.time()
-        stdout = sys.stdout
-        sys.stdout = open(f'{run_name}.txt', 'w')
-        run_benchmark(run_name, True, length=8)
-        sys.stdout = stdout
+        pool.apply_async(run_benchmark, args=(run_name, True, 2,))
 
-        print(f'Done in {time.time() - t} seconds')
+    pool.close()
+    pool.join()
+
+    print(f'Done after {time.time() - t} seconds.')
+
+    t = time.time()
+    print('Starting sequential')
+    for i in range(10):
+        run_name = f'{i}_validated'
+        run_benchmark(run_name, True, 2)
+
+    print(f'Done after {time.time() - t} seconds.')
+
 
     # data = test_distributions(10000, 12, 10000,
     #                           120, 10000, validate=True)
