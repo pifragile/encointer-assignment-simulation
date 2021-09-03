@@ -176,13 +176,13 @@ def get_participants_full(meetup_index, num_locations, num_b, num_r, num_e, num_
             result.append((f'R{p - num_b}'))
 
     # endorsees
-    participants = get_participants(meetup_index, N_e, n, s1_e, s2_e)
+    participants = get_participants(meetup_index, N_e, n, s1_e, s2_e, num_e)
     for p in participants:
         if p < num_e:
             result.append(f'E{p}')
 
     # newbies
-    participants = get_participants(meetup_index, N_n, n, s1_n, s2_n)
+    participants = get_participants(meetup_index, N_n, n, s1_n, s2_n, num_n)
     for p in participants:
         if p < num_n:
             result.append(f'N{p}')
@@ -394,17 +394,13 @@ def calculate_meetups(num_locations, num_bootstrappers, num_reputables, num_endo
         meetups[meetup].append(f'R{i}')
 
     # distribute endorsees
-    s1_e = random.choice(primes)
-    s2_e = random.choice(primes)
-    N_e = find_prime_above(num_allowed_endorsees)
+    N_e, s1_e, s2_e = get_N_s1_s3(num_allowed_endorsees, n)
     for i in range(num_allowed_endorsees):
         meetup = get_meetup_location(i, N_e, n, s1_e, s2_e)
         meetups[meetup].append(f'E{i}')
 
     # distribute_newbies
-    s1_n = random.choice(primes)
-    s2_n = random.choice(primes)
-    N_n = find_prime_above(num_allowed_newbies)
+    N_n, s1_n, s2_n = get_N_s1_s3(num_allowed_newbies, n)
     for i in range(num_allowed_newbies):
         meetup = get_meetup_location(i, N_n, n, s1_n, s2_n)
         meetups[meetup].append(f'N{i}')
@@ -485,8 +481,8 @@ if __name__ == '__main__':
     num_workers = mp.cpu_count()
     pool = mp.Pool(num_workers)
     for i in range(10):
-        run_name = f'{i}_validated'
-        pool.apply_async(run_benchmark, args=(run_name, True, 8,))
+        run_name = f'{i}_validated_prime_below'
+        pool.apply_async(run_benchmark, args=(run_name, True, 1,))
 
     pool.close()
     pool.join()
