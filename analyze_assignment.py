@@ -394,17 +394,13 @@ def calculate_meetups(num_locations, num_bootstrappers, num_reputables, num_endo
         meetups[meetup].append(f'R{i}')
 
     # distribute endorsees
-    s1_e = random.choice(primes)
-    s2_e = random.choice(primes)
-    N_e = find_prime_above(num_allowed_endorsees)
+    N_e, s1_e, s2_e = get_N_s1_s3(num_allowed_endorsees, n)
     for i in range(num_allowed_endorsees):
         meetup = get_meetup_location(i, N_e, n, s1_e, s2_e)
         meetups[meetup].append(f'E{i}')
 
     # distribute_newbies
-    s1_n = random.choice(primes)
-    s2_n = random.choice(primes)
-    N_n = find_prime_above(num_allowed_newbies)
+    N_n, s1_n, s2_n = get_N_s1_s3(num_allowed_newbies, n)
     for i in range(num_allowed_newbies):
         meetup = get_meetup_location(i, N_n, n, s1_n, s2_n)
         meetups[meetup].append(f'N{i}')
@@ -451,11 +447,11 @@ def run_benchmark(identifier, validate, length):
     writer = None
     with open(f'analysis_{identifier}.csv', 'w', newline='') as csvfile:
         first = True
-        for num_locations in [5] + random.sample(range(6, 50000), length) + [50000]:
-            for num_bootstrappers in [3, 6, 12]:
-                for num_reputables in [0] + random.sample(range(0, 10000), length) + [10000]:
+        for num_locations in [5] + random.sample(range(6, 100000), length) + [100000]:
+            for num_bootstrappers in [3, 6, 9, 12]:
+                for num_reputables in [0] + random.sample(range(0, 100000), length) + [100000]:
                     for num_endorsees in [0] + random.sample(range(0, 50 * num_bootstrappers), length + 1):
-                        for num_newbies in [0] + random.sample(range(0, 10000), length) + [10000]:
+                        for num_newbies in [0] + random.sample(range(0, 100000), length) + [100000]:
                             for _ in range(3):
                                 config = {
                                     'num_locations': num_locations,
@@ -557,3 +553,12 @@ if __name__ == '__main__':
 # 58743404802895572679 42369326875634271187 122 113 1026
 
 # claim: for meetup multiplier M, we have M + 6 as an upper bound for meetup participants
+
+
+# Probem:
+# if we take prime_above, it can happen that there are no people of br,e or n assigned to a meetup eventhough there are
+# eought available
+
+# reasoning, if nP users are mapped to numbers from 0 to N where N is the prime above nP
+# and then modulo n locations, it can be that the mapping is so stupid that one location x gets no persons,
+# because all slots i * n + x did not get a value mapped
