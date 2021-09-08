@@ -5,7 +5,7 @@ import pandas as pd
 import seaborn as sns
 from matplotlib.colors import LogNorm
 
-all_filenames = [fn for fn in os.listdir('./data') if fn.split('.')[-1] == 'csv' and 'large_meetups' in fn]
+all_filenames = [fn for fn in os.listdir('./data') if fn.split('.')[-1] == 'csv' and 'large_meetups' in fn and 'analysis' in fn]
 
 df = pd.concat([pd.read_csv(os.path.join('data', f)) for f in all_filenames])
 
@@ -39,12 +39,8 @@ if preprocess_min_length_max_length:
     print(min_max_counts)
     output = min_max_counts
 else:
-    output = {'3|3': 1884, '4|4': 17079, '8|11': 52349, '9|11': 922117, '10|10': 103863, '5|5': 1233, '6|6': 4070,
-              '8|8': 22436, '8|10': 5107, '7|10': 5761, '6|11': 1424, '6|12': 177, '7|11': 3356, '6|10': 6961,
-              '9|12': 1110179, '5|7': 1645, '7|9': 11780, '9|13': 2296616, '8|12': 602047, '8|13': 81800, '8|9': 2195,
-              '7|8': 577, '6|9': 1258, '9|14': 124902, '9|10': 6575, '9|15': 626, '8|14': 1128, '5|8': 1699, '6|7': 189,
-              '9|9': 2218, '5|11': 189, '5|10': 259, '6|8': 2721, '7|7': 325, '5|9': 1364, '4|8': 732, '7|12': 882,
-              '7|13': 30, '5|6': 81, '4|7': 63, '4|9': 103}
+    output = {'9|13': 3068, '9|14': 4}
+
 
 print(f'Number of simulated assignments check:{sum(output.values())}')
 
