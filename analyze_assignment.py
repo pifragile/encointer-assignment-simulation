@@ -480,7 +480,7 @@ if __name__ == '__main__':
     print('Starting Processes')
     num_workers = mp.cpu_count()
     pool = mp.Pool(num_workers)
-    for i in range(60):
+    for i in range(50):
         run_name = f'run2_{i}'
         pool.apply_async(run_benchmark, args=(run_name, True, 8,))
 
