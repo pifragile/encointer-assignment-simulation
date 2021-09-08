@@ -447,9 +447,9 @@ def run_benchmark(identifier, validate, length):
     writer = None
     with open(f'analysis_{identifier}.csv', 'w', newline='') as csvfile:
         first = True
-        for num_locations in [5] + random.sample(range(6, 100000), length) + [100000]:
+        for num_locations in [5] + random.sample(range(6, 200000), length) + [200000]:
             for num_bootstrappers in [3, 6, 9, 12]:
-                for num_reputables in [0] + random.sample(range(0, 100000), length) + [100000]:
+                for num_reputables in [0] + random.sample(range(0, 200000), length) + [200000]:
                     for num_endorsees in [0] + random.sample(range(0, 50 * num_bootstrappers), length + 1):
                         for num_newbies in [0] + random.sample(range(0, 100000), length) + [100000]:
                             for _ in range(3):
@@ -480,8 +480,8 @@ if __name__ == '__main__':
     print('Starting Processes')
     num_workers = mp.cpu_count()
     pool = mp.Pool(num_workers)
-    for i in range(10):
-        run_name = f'{i}_validated'
+    for i in range(60):
+        run_name = f'run2_{i}'
         pool.apply_async(run_benchmark, args=(run_name, True, 8,))
 
     pool.close()
