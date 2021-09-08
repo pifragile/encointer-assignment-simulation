@@ -15,12 +15,11 @@ max_num_without_br = df['num_meetups_without_bootstrapper_or_reputable'].max()
 sum_meetups = df['num_meetups'].sum()
 
 print(f"""
-    NUmber of simulated ceremony phases: {num_rows}
+    NUmber of simulated assignments: {num_rows}
     Max number of participants per meetup: {max_length_max}
     Max number of meetups without br: {max_num_without_br}
     Sum of calculated meetups: {sum_meetups}
     """)
-
 
 # set to True if you want to preprocess counting of rows grouped by min_length and max_length
 # as sns.distplot is way too slow for our large dataset
@@ -43,7 +42,7 @@ else:
               '9|9': 2218, '5|11': 189, '5|10': 259, '6|8': 2721, '7|7': 325, '5|9': 1364, '4|8': 732, '7|12': 882,
               '7|13': 30, '5|6': 81, '4|7': 63, '4|9': 103}
 
-print(f'Number of simulated phases check:{sum(output.values())}')
+print(f'Number of simulated assignments check:{sum(output.values())}')
 
 df_count = df.groupby(['min_length', 'max_length']).size().reset_index()
 
@@ -53,7 +52,7 @@ df_heatmap = df_count.pivot(index='max_length', columns='min_length', values=0)
 ax = sns.heatmap(df_heatmap, cmap=sns.cubehelix_palette(start=.5, rot=-.5, as_cmap=True), linewidths=0.5,
                  linecolor='white', norm=LogNorm(), cbar_kws={'label': 'Number of ceremony phases'})
 ax.invert_yaxis()
-plt.title('Bounds on meetup size for simulated ceremony phases')
+plt.title('Bounds on meetup size for simulated meetup assignments')
 plt.xlabel('Minimum Meetup Size')
 plt.ylabel('Maximum Meetup Size')
 plt.savefig('plots/meetup_size_bounds')
