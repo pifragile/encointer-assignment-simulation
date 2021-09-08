@@ -447,11 +447,11 @@ def run_benchmark(identifier, validate, length):
     writer = None
     with open(f'analysis_{identifier}.csv', 'w', newline='') as csvfile:
         first = True
-        for num_locations in random.sample(range(100000, 200000), length) + [200000]:
+        for num_locations in random.sample(range(10000, 200000), length) + [200000]:
             for num_bootstrappers in [12]:
-                for num_reputables in random.sample(range(100000, 200000), length) + [200000]:
+                for num_reputables in random.sample(range(10000, 200000), length) + [200000]:
                     for num_endorsees in [60]:
-                        for num_newbies in random.sample(range(50000, 100000), length) + [100000]:
+                        for num_newbies in random.sample(range(10000, 100000), length) + [100000]:
                                 config = {
                                     'num_locations': num_locations,
                                     'num_bootstrappers': num_bootstrappers,
