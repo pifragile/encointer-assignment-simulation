@@ -481,7 +481,7 @@ if __name__ == '__main__':
     num_workers = mp.cpu_count()
     pool = mp.Pool(num_workers)
     for i in range(50):
-        run_name = f'run2_{i}'
+        run_name = f'{i}_prime_below'
         pool.apply_async(run_benchmark, args=(run_name, True, 8,))
 
     pool.close()
