@@ -447,12 +447,11 @@ def run_benchmark(identifier, validate, length):
     writer = None
     with open(f'analysis_{identifier}.csv', 'w', newline='') as csvfile:
         first = True
-        for num_locations in [5] + random.sample(range(6, 200000), length) + [200000]:
-            for num_bootstrappers in [3, 6, 9, 12]:
-                for num_reputables in [0] + random.sample(range(0, 200000), length) + [200000]:
-                    for num_endorsees in [0] + random.sample(range(0, 50 * num_bootstrappers), length + 1):
-                        for num_newbies in [0] + random.sample(range(0, 100000), length) + [100000]:
-                            for _ in range(3):
+        for num_locations in random.sample(range(100000, 200000), length) + [200000]:
+            for num_bootstrappers in [12]:
+                for num_reputables in random.sample(range(100000, 200000), length) + [200000]:
+                    for num_endorsees in [60]:
+                        for num_newbies in random.sample(range(50000, 100000), length) + [100000]:
                                 config = {
                                     'num_locations': num_locations,
                                     'num_bootstrappers': num_bootstrappers,
@@ -480,9 +479,9 @@ if __name__ == '__main__':
     print('Starting Processes')
     num_workers = mp.cpu_count()
     pool = mp.Pool(num_workers)
-    for i in range(50):
-        run_name = f'{i}_prime_below'
-        pool.apply_async(run_benchmark, args=(run_name, True, 8,))
+    for i in range(48):
+        run_name = f'{i}_large_meetups'
+        pool.apply_async(run_benchmark, args=(run_name, True, 3,))
 
     pool.close()
     pool.join()
