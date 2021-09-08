@@ -176,13 +176,13 @@ def get_participants_full(meetup_index, num_locations, num_b, num_r, num_e, num_
             result.append((f'R{p - num_b}'))
 
     # endorsees
-    participants = get_participants(meetup_index, N_e, n, s1_e, s2_e)
+    participants = get_participants(meetup_index, N_e, n, s1_e, s2_e, num_e)
     for p in participants:
         if p < num_e:
             result.append(f'E{p}')
 
     # newbies
-    participants = get_participants(meetup_index, N_n, n, s1_n, s2_n)
+    participants = get_participants(meetup_index, N_n, n, s1_n, s2_n, num_n)
     for p in participants:
         if p < num_n:
             result.append(f'N{p}')
