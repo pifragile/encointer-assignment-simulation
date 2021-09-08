@@ -39,7 +39,7 @@ if preprocess_min_length_max_length:
     print(min_max_counts)
     output = min_max_counts
 else:
-    output = {'9|13': 3068, '9|14': 4}
+    output = {'9|13': 10063, '9|12': 9, '9|14': 17, '9|11': 258, '8|12': 21}
 
 
 print(f'Number of simulated assignments check:{sum(output.values())}')

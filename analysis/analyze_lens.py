@@ -31,7 +31,7 @@ if pre_process:
     lens = length_counter
     newbie_ratios = newbie_ratio_counter
 else:
-    lens = {12: 201847, 13: 3236, 11: 30778366, 10: 3925072, 9: 31207234, 14: 4}
+    lens = {12: 656359, 13: 11155, 11: 62042049, 10: 32838320, 9: 63433600, 14: 17, 8: 409}
     newbie_ratios = {}
 
 df = pd.DataFrame(lens.items(), columns=['num_participants', 'amount_meetups'])

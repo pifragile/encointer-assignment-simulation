@@ -481,7 +481,7 @@ if __name__ == '__main__':
     pool = mp.Pool(num_workers)
     for i in range(48):
         run_name = f'{i}_large_meetups'
-        pool.apply_async(run_benchmark, args=(run_name, True, 5,))
+        pool.apply_async(run_benchmark, args=(run_name, True, 10,))
 
     pool.close()
     pool.join()
