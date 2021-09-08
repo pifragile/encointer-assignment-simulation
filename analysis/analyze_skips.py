@@ -3,7 +3,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
 
-df = pd.read_csv('data/skips_prime_below.csv')
+df = pd.read_csv('data/skips_large_meetups.csv')
 max_skips = df['num_skips'].max()
 
 # ax = sns.histplot(df, log_scale=(False,True))

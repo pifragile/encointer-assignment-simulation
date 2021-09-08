@@ -5,7 +5,7 @@ import pandas as pd
 import seaborn as sns
 from matplotlib.colors import LogNorm
 
-all_filenames = [fn for fn in os.listdir('./data') if fn.split('.')[-1] == 'csv' and 'below' in fn and 'analysis' in fn]
+all_filenames = [fn for fn in os.listdir('./data') if fn.split('.')[-1] == 'csv' and 'large_meetups' in fn]
 
 df = pd.concat([pd.read_csv(os.path.join('data', f)) for f in all_filenames])
 

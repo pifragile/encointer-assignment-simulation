@@ -1,12 +1,12 @@
 import os
-with open('skips_prime_below.csv', 'w') as skip_f:
+with open('skips_large_meetups.csv', 'w') as skip_f:
     skip_f.write('num_skips\n')
-    with open('lens_prime_below.csv', 'w') as len_f:
+    with open('lens_large_meetups.csv', 'w') as len_f:
         len_f.write('len_meetups,num_newbies\n')
         num_verified = 0
         num_meetups = 0
         for filename in os.listdir('.'):
-            if 'below' in filename and '.txt' in filename:
+            if 'large_meetups' in filename and '.txt' in filename:
                 print(f'analyzing {filename}')
                 with open(filename, 'r') as f:
                     for l in f:

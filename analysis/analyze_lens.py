@@ -5,7 +5,7 @@ import csv
 # use this to preprocess the data, as distplot is way too slow for our huge dataset
 pre_process = True
 if pre_process:
-    with open('data/lens_prime_below.csv', 'r') as f:
+    with open('data/lens_large_meetups.csv', 'r') as f:
         length_counter = {}
         newbie_ratio_counter = {}
         f.readline()
