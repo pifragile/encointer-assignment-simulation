@@ -19,7 +19,11 @@ print(f"""
     Max number of participants per meetup: {max_length_max}
     Max number of meetups without br: {max_num_without_br}
     Sum of calculated meetups: {sum_meetups}
+    Max newbie ratio: {df['max_newbie_ratio'].max()}
     """)
+
+df_newbies = df[df['max_newbie_ratio'] > 0.34]
+print(df_newbies)
 
 # set to True if you want to preprocess counting of rows grouped by min_length and max_length
 # as sns.distplot is way too slow for our large dataset
