@@ -27,7 +27,7 @@ print(df_newbies)
 
 # set to True if you want to preprocess counting of rows grouped by min_length and max_length
 # as sns.distplot is way too slow for our large dataset
-preprocess_min_length_max_length = False
+preprocess_min_length_max_length = True
 if preprocess_min_length_max_length:
     min_max_counts = {}
     for index, row in df.iterrows():
@@ -39,7 +39,7 @@ if preprocess_min_length_max_length:
     print(min_max_counts)
     output = min_max_counts
 else:
-    output = {'9|13': 10063, '9|12': 9, '9|14': 17, '9|11': 258, '8|12': 21}
+    output = {'9|13': 62452, '8|12': 90, '9|12': 65, '9|14': 115, '9|11': 1166}
 
 
 print(f'Number of simulated assignments check:{sum(output.values())}')
