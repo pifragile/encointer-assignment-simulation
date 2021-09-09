@@ -11,14 +11,8 @@ with open('skips_prime_below.csv', 'w') as skip_f:
                 with open(filename, 'r') as f:
                     for l in f:
                         if l.startswith('['):
-                            len_meetup = 0
-                            num_newbies = 0
-                            for c in l:
-                                if c in ['B', 'R', 'E']:
-                                    len_meetup += 1
-                                elif c == 'N':
-                                    len_meetup += 1
-                                    num_newbies += 1
+                            len_meetup = len(l.split(','))
+                            num_newbies = len(l.split('N')) - 1
                             len_f.write(f'{len_meetup},{num_newbies}\n')
                         else:
                             l = l.strip()
