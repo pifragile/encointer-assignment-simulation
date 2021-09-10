@@ -19,7 +19,7 @@ plt.title('Distribution loop iterations for bad prime number configurations')
 plt.xlabel('Number of loop iterations')
 plt.ylabel('Count')
 
-plt.savefig('plots/skip_distribution.png')
+plt.savefig('plots/skip_distribution_large_meetups.png')
 
 print(f"""
 Max number of skips: {max_skips}
