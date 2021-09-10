@@ -1,10 +1,15 @@
 import csv
 import math
+import multiprocessing as mp
+import os
 import random
 import time
-import sys
-import multiprocessing as mp
+
 from primes import primes
+
+BENCHMARK_NAME = 'run2'
+NUM_BENCHMARKS = 48
+BENCHMARK_SIZE = 8
 
 
 class bcolors:
@@ -54,6 +59,26 @@ class bcolors:
 ###
 # UTILS
 #
+
+def merge_dicts(dicts):
+    first = dicts[0].copy()
+    for mergedfrom in dicts[1:]:
+        for k, v in mergedfrom.items():
+            if k in first:
+                first[k] += v
+            else:
+                first[k] = v
+        return first
+
+
+def proc_wrapper(func, *args, **kwargs):
+    """Print exception because multiprocessing lib doesn't return them right."""
+    try:
+        return func(*args, **kwargs)
+    except Exception as e:
+        print(e)
+        raise
+
 
 def print_colored(text, color):
     print(f'{color}{text}{bcolors.ENDC}')
@@ -206,7 +231,6 @@ def validate_equal_mapping(num_participants, N, n, s1, s2):
         else:
             meetup_index_count[meetup_index] += 1
             if meetup_index_count[meetup_index] > meetup_index_count_max:
-                print_colored('SKIPPED', bcolors.FAIL)
                 return False
     return True
 
@@ -225,42 +249,16 @@ def get_N_s1_s3(num_participants, num_locations):
     while True:
         s1 = random.choice(primes)
         s2 = random.choice(primes)
-        print(s1, s2, num_participants, N, num_locations)
         if validate_equal_mapping(num_participants, N, num_locations, s1, s2):
             break
         else:
             skip_count += 1
-        print_colored(f'Skipped primes X times: {skip_count}', bcolors.FAIL)
-    return N, s1, s2
+    return N, s1, s2, skip_count
 
 
 ###
 ###
 ###
-
-def test_core_functions():
-    # number of participants
-    N = 1201
-
-    # number of meetups
-    n = 100
-
-    s1 = random.choice(primes)
-    # s1 = 425374829251
-    # s2 = random.randint(0, N)
-    s2 = random.choice(primes)
-
-    meetups = [[] for _ in range(n)]
-    for i in range(N):
-        meetup_location = get_meetup_location(i, N, n, s1, s2)
-        meetups[meetup_location].append(i)
-
-    for j in range(n):
-        participants = get_participants(j, N, n, s1, s2)
-        participants.sort()
-        expected_participants = meetups[j]
-        expected_participants.sort()
-        assert (participants == expected_participants)
 
 
 def analyze_meetups(meetups):
@@ -275,9 +273,17 @@ def analyze_meetups(meetups):
 
     for meetup in meetups:
         length = len(meetup)
-        num_reputables = sum([1 for x in meetup if x[0] == 'R'])
-        num_bootstrappers = sum([1 for x in meetup if x[0] == 'B'])
-        num_newbies = sum([1 for x in meetup if x[0] == 'N'])
+
+        num_reputables = 0
+        num_bootstrappers = 0
+        num_newbies = 0
+        for x in meetup:
+            if x[0] == 'R':
+                num_reputables += 1
+            elif x[0] == 'B':
+                num_bootstrappers += 1
+            elif x[0] == 'N':
+                num_newbies += 1
 
         num_bootstrappers_list.append(num_bootstrappers)
         num_reputables_list.append(num_reputables)
@@ -308,18 +314,8 @@ def analyze_meetups(meetups):
 
     num_meetups = len(meetups)
 
-    num_participants = sum([len(l) for l in meetups])
+    num_participants = sum(length_list)
 
-    print(f"""
-		Number of meetups: {num_meetups}
-		Number of meetups without bootstrappers or reputables: {num_meetups_without_bootstrapper_or_reputable}
-		Number of Boostrappers in [{min_num_bootstrappers}, {max_num_bootstrappers}]
-		Number of Reputables in [{min_num_reputables}, {max_num_reputables}]
-		Minimum number of bootstrapper/reputables: {min_bootstrapers_and_reputable}
-		Newbie ratio in [{min_newbie_ratio}, {max_newbie_ratio}]
-		Length in [{min_length},{max_length}]
-		Number of participants is {num_participants}
-		""")
     return {'num_meetups': num_meetups,
             'num_meetups_without_bootstrapper_or_reputable': num_meetups_without_bootstrapper_or_reputable,
             'min_num_bootstrappers': min_num_bootstrappers,
@@ -332,17 +328,17 @@ def analyze_meetups(meetups):
             'min_length': min_length,
             'max_length': max_length,
             'num_participants': num_participants
-            }
+            }, newbie_ratio_list, length_list
 
 
-def validate_meetups(meetups, num_locations, num_b, num_r, num_e, num_n, s1_br, s2_br, s1_e, s2_e, s1_n, s2_n, N_br, N_e, N_n):
+def validate_meetups(meetups, num_locations, num_b, num_r, num_e, num_n, s1_br, s2_br, s1_e, s2_e, s1_n, s2_n, N_br,
+                     N_e, N_n):
     for idx, meetup in enumerate(meetups):
         expected_meetup = get_participants_full(idx, num_locations, num_b, num_r, num_e, num_n, s1_br, s2_br, s1_e,
                                                 s2_e, s1_n, s2_n, N_br, N_e, N_n)
         expected_meetup.sort()
         meetup.sort()
         assert (expected_meetup == meetup)
-    print_colored('Meetups verified.', bcolors.OKGREEN)
 
 
 def calculate_meetups(num_locations, num_bootstrappers, num_reputables, num_endorsees, num_newbies, validate=False):
@@ -383,7 +379,7 @@ def calculate_meetups(num_locations, num_bootstrappers, num_reputables, num_endo
     # they are distributed in one go to minimize the number of meetups without
     # at least one bootstrapper or reputable
     n = num_meetups
-    N_br, s1_br, s2_br = get_N_s1_s3(num_allowed_bootstrappers + num_allowed_reputables, n)
+    N_br, s1_br, s2_br, skip_count_br = get_N_s1_s3(num_allowed_bootstrappers + num_allowed_reputables, n)
     for i in range(num_allowed_bootstrappers):
         meetup = get_meetup_location(i, N_br, n, s1_br, s2_br)
         meetups[meetup].append(f'B{i}')
@@ -394,13 +390,13 @@ def calculate_meetups(num_locations, num_bootstrappers, num_reputables, num_endo
         meetups[meetup].append(f'R{i}')
 
     # distribute endorsees
-    N_e, s1_e, s2_e = get_N_s1_s3(num_allowed_endorsees, n)
+    N_e, s1_e, s2_e, skip_count_e = get_N_s1_s3(num_allowed_endorsees, n)
     for i in range(num_allowed_endorsees):
         meetup = get_meetup_location(i, N_e, n, s1_e, s2_e)
         meetups[meetup].append(f'E{i}')
 
     # distribute_newbies
-    N_n, s1_n, s2_n = get_N_s1_s3(num_allowed_newbies, n)
+    N_n, s1_n, s2_n, skip_count_n = get_N_s1_s3(num_allowed_newbies, n)
     for i in range(num_allowed_newbies):
         meetup = get_meetup_location(i, N_n, n, s1_n, s2_n)
         meetups[meetup].append(f'N{i}')
@@ -409,51 +405,33 @@ def calculate_meetups(num_locations, num_bootstrappers, num_reputables, num_endo
         validate_meetups(meetups, num_meetups, num_allowed_bootstrappers, num_allowed_reputables, num_allowed_endorsees,
                          num_allowed_newbies, s1_br, s2_br, s1_e, s2_e, s1_n, s2_n, N_br, N_e, N_n)
 
-    return meetups
+    skip_counts = {'skip_count_br': skip_count_br,
+                   'skip_count_e': skip_count_e,
+                   'skip_count_n': skip_count_n}
+    return meetups, skip_counts
 
 
-def test_distributions(num_locations, num_bootstrappers, num_reputables, num_endorsees, num_newbies, validate=False):
-    """
-    Change parameters here and run the script in order to get the distribution of participants
-    and some heuristics printed to the console.
-    """
-
-    print(f"""
-		Running Test:
-			Number of Locations = {num_locations}
-			Number of Bootstrappers = {num_bootstrappers}
-			Number of Reputables = {num_reputables}
-			Number of Endorsees = {num_endorsees}
-			Number of Newbies = {num_newbies}
-		""")
-
-    meetups = calculate_meetups(num_locations, num_bootstrappers, num_reputables, num_endorsees, num_newbies,
-                                validate=validate)
-    for m in meetups:
-        print(m)
-    data = analyze_meetups(meetups)
-
-    print('#########################\n\n\n')
-
-    return data
-
-
-def run_benchmark(identifier, validate, length):
+def run_benchmark(identifier, validate, benchmark_size):
     print(f'Running benchmark {identifier}')
     t = time.time()
-    stdout = sys.stdout
-    sys.stdout = open(f'{identifier}.txt', 'w')
-
     writer = None
-    with open(f'analysis_{identifier}.csv', 'w', newline='') as csvfile:
-        first = True
-        for num_locations in [5] + random.sample(range(6, 200000), length) + [200000]:
-            for num_bootstrappers in [3, 6, 9, 12]:
-                for num_reputables in [0] + random.sample(range(0, 200000), length) + [200000]:
-                    for num_endorsees in [0] + random.sample(range(0, 50 * num_bootstrappers), length + 1):
-                        for num_newbies in [0] + random.sample(range(0, 100000), length) + [100000]:
-                            for _ in range(3):
+
+    newbie_ratio_counter = {}
+    meetup_length_counter = {}
+
+    with open(os.path.join('data', f'analysis_{identifier}.csv'), 'w', newline='') as f_analysis:
+        with open(os.path.join('data', f'log_{identifier}.csv'), 'w', newline='') as f_log:
+            f_log.write('run_number,meetup\n')
+            first = True
+            run_number = 0
+            for num_locations in [5] + random.sample(range(6, 50000), benchmark_size) + [50000]:
+                for num_bootstrappers in [3, 6, 12]:
+                    for num_reputables in [0] + random.sample(range(0, 10000), benchmark_size) + [10000]:
+                        for num_endorsees in [0] + random.sample(range(0, 50 * num_bootstrappers), benchmark_size + 1):
+                            for num_newbies in [0] + random.sample(range(0, 10000), benchmark_size) + [10000]:
                                 config = {
+                                    'benchmark_identifier': identifier,
+                                    'run_number': run_number,
                                     'num_locations': num_locations,
                                     'num_bootstrappers': num_bootstrappers,
                                     'num_reputables': num_reputables,
@@ -461,18 +439,43 @@ def run_benchmark(identifier, validate, length):
                                     'num_newbies': num_newbies
                                 }
 
-                                data = test_distributions(num_locations, num_bootstrappers, num_reputables,
-                                                          num_endorsees, num_newbies, validate=validate)
-                                row = {**config, **data}
+                                meetups, skip_counts = calculate_meetups(num_locations, num_bootstrappers,
+                                                                         num_reputables,
+                                                                         num_endorsees, num_newbies,
+                                                                         validate=validate)
+
+                                data, newbie_ratio_list, length_list = analyze_meetups(meetups)
+
+                                for meetup in meetups:
+                                    f_log.write(f'{run_number},{".".join(meetup)}\n')
+
+                                for length in length_list:
+                                    if length in meetup_length_counter.keys():
+                                        meetup_length_counter[length] += 1
+                                    else:
+                                        meetup_length_counter[length] = 1
+
+                                for newbie_ratio in newbie_ratio_list:
+                                    newbie_ratio = round(newbie_ratio, 2)
+                                    if newbie_ratio in newbie_ratio_counter.keys():
+                                        newbie_ratio_counter[newbie_ratio] += 1
+                                    else:
+                                        newbie_ratio_counter[newbie_ratio] = 1
+
+                                row = {**config, **data, **skip_counts}
 
                                 if first:
                                     fieldnames = row.keys()
-                                    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                                    writer = csv.DictWriter(f_analysis, fieldnames=fieldnames)
                                     writer.writeheader()
                                     first = False
                                 writer.writerow(row)
-    sys.stdout = stdout
+
+                                run_number += 1
+
     print(f'Process {identifier} done in {time.time() - t} seconds')
+
+    return meetup_length_counter, newbie_ratio_counter
 
 
 if __name__ == '__main__':
@@ -480,18 +483,30 @@ if __name__ == '__main__':
     print('Starting Processes')
     num_workers = mp.cpu_count()
     pool = mp.Pool(num_workers)
-    for i in range(50):
-        run_name = f'{i}_prime_below'
-        pool.apply_async(run_benchmark, args=(run_name, True, 8,))
+    results = []
+    for i in range(NUM_BENCHMARKS):
+        run_name = f'{BENCHMARK_NAME}_{i}'
+        results.append(pool.apply_async(proc_wrapper, args=(run_benchmark, run_name, True, BENCHMARK_SIZE,)))
 
-    pool.close()
-    pool.join()
+    res = [result.get() for result in results]
+
+    meetup_length_counters, newbie_ratio_counters = zip(*res)
+
+    meetup_length_counter = merge_dicts(meetup_length_counters)
+    newbie_ratio_counter = merge_dicts(newbie_ratio_counters)
+
+    with open(os.path.join('data', f'meetup_lengths_{BENCHMARK_NAME}.csv'), 'w') as csv_file:
+        writer = csv.writer(csv_file)
+        for key, value in meetup_length_counter.items():
+            writer.writerow([key, value])
+
+    with open(os.path.join('data', f'newbie_ratios_{BENCHMARK_NAME}.csv'), 'w') as csv_file:
+        writer = csv.writer(csv_file)
+        for key, value in newbie_ratio_counter.items():
+            writer.writerow([key, value])
 
     print(f'Done after {time.time() - t} seconds.')
 
-
-    # data = test_distributions(10000, 12, 10000,
-    #                           120, 10000, validate=True)
 
 # Problem
 # if the output of get_meetup_location are as follows:
