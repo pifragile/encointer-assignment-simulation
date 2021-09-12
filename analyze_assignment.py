@@ -7,7 +7,7 @@ import time
 
 BENCHMARK_NAME = 'no_prime'
 NUM_BENCHMARKS = 48
-BENCHMARK_SIZE = 8
+BENCHMARK_SIZE = 10
 
 
 class bcolors:
@@ -391,11 +391,11 @@ def run_benchmark(identifier, validate, benchmark_size):
             f_log.write('run_number,meetup\n')
             first = True
             run_number = 0
-            for num_locations in [5] + random.sample(range(6, 50000), benchmark_size) + [50000]:
-                for num_bootstrappers in [3, 6, 12]:
-                    for num_reputables in [0] + random.sample(range(0, 10000), benchmark_size) + [10000]:
-                        for num_endorsees in [0] + random.sample(range(0, 50 * num_bootstrappers), benchmark_size + 1):
-                            for num_newbies in [0] + random.sample(range(0, 10000), benchmark_size) + [10000]:
+            for num_locations in random.sample(range(10000, 200000), benchmark_size) + [200000]:
+                for num_bootstrappers in [12]:
+                    for num_reputables in random.sample(range(10000, 200000), benchmark_size) + [200000]:
+                        for num_endorsees in [60]:
+                            for num_newbies in random.sample(range(10000, 100000), benchmark_size) + [100000]:
                                 config = {
                                     'benchmark_identifier': identifier,
                                     'run_number': run_number,
