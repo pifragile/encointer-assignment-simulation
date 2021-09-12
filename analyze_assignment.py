@@ -7,7 +7,7 @@ import time
 
 from primes import primes
 
-BENCHMARK_NAME = 'run2'
+BENCHMARK_NAME = 'run_test'
 NUM_BENCHMARKS = 48
 BENCHMARK_SIZE = 8
 
@@ -23,38 +23,6 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
-
-#
-# THIS SECTION of comments are internal notes of pifragile
-# do not quote me on that stuff.
-#
-# if n = x and N = 12x, the groups are very predictable
-# it will always go in steps of x, because mod N mod n boils down to mod n
-
-# number of participants can be influenced by attacker
-
-# approach: chose n and N such that they are coprime
-# if n is increased or decreased: more or fewer persons per meetup
-# if N is increased or decreased: permutation not perfect, there might be meetups with no
-# participants (problematic for bootstrappers and reputables)
-
-# approach:
-# take the modulus M as the next prime smaller than N, the ones between M and N, will be
-# mapped to duplicate indices between 0 and M. but thats ok, because it is not predictable,
-# where they will land
-
-# for reputables+bootstrappers rb:
-# if there are X rb, we cannot make X meetups, but the prime  below X, because otherwise it could
-# be that there are meetups without rp
-
-# come up with algo to find best n, and M for each rp, newbie, endorsees group
-
-
-# for bootstrappers there can be no attack, so we just distribute them, take M as num_locations,
-# so for each bootsrtapper we get a different location.
-
-# for reputables there is also an attack vector foe collusion
-
 ###
 ###
 # UTILS
@@ -68,7 +36,7 @@ def merge_dicts(dicts):
                 first[k] += v
             else:
                 first[k] = v
-        return first
+    return first
 
 
 def proc_wrapper(func, *args, **kwargs):
@@ -495,6 +463,7 @@ if __name__ == '__main__':
     meetup_length_counter = merge_dicts(meetup_length_counters)
     newbie_ratio_counter = merge_dicts(newbie_ratio_counters)
 
+
     with open(os.path.join('data', f'meetup_lengths_{BENCHMARK_NAME}.csv'), 'w') as csv_file:
         writer = csv.writer(csv_file)
         for key, value in meetup_length_counter.items():
@@ -506,74 +475,3 @@ if __name__ == '__main__':
             writer.writerow([key, value])
 
     print(f'Done after {time.time() - t} seconds.')
-
-
-# Problem
-# if the output of get_meetup_location are as follows:
-# x
-# x - y
-# x - 2*y
-# ...
-# z
-# z - y
-# z - 2*y
-
-# and y happens to be n
-# then there are consecutive groups of numbers that map to the same location
-# this becaomes a problem together with the fact that we take the prime below 
-# the number of bootstrappers and reuptables, because at the point where it wraps around,
-# all the consequtive numbers land in the same location and this location will have
-# too many participants
-
-# Mitigations:
-# 1. do not take prime below
-# 2. check for this property and do not take the primes if it is the case
-# 3. take prime above insetad of below, and accept that there will be meetups without reputable or bootstrapper
-# --> this looks like a tradeoff of randomness vs. equal distribution
-
-
-# example:
-# 	s1 = 72914169386263772687
-# 	s2 = 74123226946075602539
-# num_locations = 28179
-# num_bootstrappers = 3
-# num_reputables = 2761
-# num_endorsees = 437
-# num_newbies = 9951
-# test_distributions(num_locations, num_bootstrappers, num_reputables, num_endorsees, num_newbies)
-
-
-# if we take prime above and accept some meetups without bootstrapper and reputable
-# prove that there can be no more than 12 participants
-
-# claim: if meetup multipler is x, then max_length will be at most x + 3
-# intuition: in every of the 3 assignment steps(b+r, e, n) there can be at most 1 user per bucket too much.
-# how to prove? hard to prove with all the different possible configurations of number of meetups,n, N etc....
-
-# issue is if n is smaller than the gap between N and prime_above(N), then more than 1 additional user could end up in
-# a meeupt
-
-# maybe not prove, not accept up to xyz.
-
-# i dont know if i am capable to come up with such a proof.
-
-
-# now check is implemented that the distribution is more or less equal, but still:
-#
-# 9973/1026=9.7, so 10 possible +1 for the gap
-# and for both endorsees and newbies: each time two possible, so we can get max of 15 per bucket in this example
-# s1, s2, num_{br, e, n}, prime_below, n
-# 73268479431991309189 41539885204528894193 10003 9973 1026
-# 49255231677046994971 76359690132928170641 126 113 1026
-# 58743404802895572679 42369326875634271187 122 113 1026
-
-# claim: for meetup multiplier M, we have M + 6 as an upper bound for meetup participants
-
-
-# Probem:
-# if we take prime_above, it can happen that there are no people of br,e or n assigned to a meetup eventhough there are
-# eought available
-
-# reasoning, if nP users are mapped to numbers from 0 to N where N is the prime above nP
-# and then modulo n locations, it can be that the mapping is so stupid that one location x gets no persons,
-# because all slots i * n + x did not get a value mapped

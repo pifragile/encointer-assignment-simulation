@@ -27,6 +27,7 @@ df = pd.DataFrame(lens.items(), columns=['num_participants', 'amount_meetups'])
 print(f"""
 Sum of meetups: {df['amount_meetups'].sum()}
 """)
+
 df = df.sort_values('num_participants')
 ax = df.plot.bar(x='num_participants', y='amount_meetups', rot=0)
 ax.get_legend().remove()
@@ -38,7 +39,6 @@ plt.savefig(f'plots/meetup_size_distribution_{BENCHMARK_NAME}.png')
 plt.clf()
 
 max_newbie_ratio = max(newbie_ratios.keys())
-print(max_newbie_ratio)
 i = 0.0
 while i <= max_newbie_ratio:
     i = round(i,2)
@@ -46,7 +46,6 @@ while i <= max_newbie_ratio:
         newbie_ratios[i] = 0
     i += 0.01
 
-print(newbie_ratios)
 df = pd.DataFrame(newbie_ratios.items(), columns=['newbie_ratio', 'amount_meetups'])
 
 print(f"""
@@ -78,7 +77,7 @@ max_num_without_br = df['num_meetups_without_bootstrapper_or_reputable'].max()
 sum_meetups = df['num_meetups'].sum()
 
 print(f"""
-    NUmber of simulated assignments: {num_rows}
+    Number of simulated assignments: {num_rows}
     Max number of participants per meetup: {max_length_max}
     Max number of meetups without br: {max_num_without_br}
     Sum of calculated meetups: {sum_meetups}
@@ -106,8 +105,6 @@ else:
 print(f'Number of simulated assignments check:{sum(output.values())}')
 
 df_count = df.groupby(['min_length', 'max_length']).size().reset_index()
-
-print(df_count)
 
 df_heatmap = df_count.pivot(index='max_length', columns='min_length', values=0)
 ax = sns.heatmap(df_heatmap, cmap=sns.cubehelix_palette(start=.5, rot=-.5, as_cmap=True), linewidths=0.5,
@@ -150,3 +147,6 @@ Total runs where there were minimum 1 skip: {len(df1[df1['num_skips'] > 0])}
 
 grouped_df = df1.groupby('num_skips').size()
 print(grouped_df)
+print(f"""
+Number of simulated assignments check: {grouped_df.sum()}
+""")
