@@ -122,16 +122,18 @@ df1 = df[['skip_count_br']]
 df2 = df[['skip_count_e']]
 df3 = df[['skip_count_n']]
 df1.columns = ['num_skips']
-df1.append(df2)
-df1.append(df3)
+df2.columns = ['num_skips']
+df3.columns = ['num_skips']
+df1 = df1.append(df2)
+df1 = df1.append(df3)
+grouped_df = df1.groupby('num_skips').size()
 
 max_skips = df1['num_skips'].max()
 
-bins = range(1, 10)
-plt.hist(df1, range(1, 11), align='left', edgecolor='black', linewidth=1)
-plt.xticks(range(1, 10))
+plt.hist(df1, range(-1, max_skips + 2), align='left', edgecolor='black', linewidth=1)
+plt.xticks(range(0, max_skips + 2, 2))
 plt.yscale('log')
-# plt.xlim([0.5, 9.5])
+plt.xlim([-0.5, max_skips+1.5])
 
 plt.title('Distribution loop iterations for bad prime number configurations')
 plt.xlabel('Number of loop iterations')
@@ -145,8 +147,7 @@ Max number of skips: {max_skips}
 Total runs where there were minimum 1 skip: {len(df1[df1['num_skips'] > 0])}
 """)
 
-grouped_df = df1.groupby('num_skips').size()
 print(grouped_df)
 print(f"""
-Number of simulated assignments check: {grouped_df.sum()}
+Number of simulated assignments check (3x): {grouped_df.sum()}
 """)
