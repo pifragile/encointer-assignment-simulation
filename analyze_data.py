@@ -32,16 +32,16 @@ df = df.sort_values('num_participants')
 ax = df.plot.bar(x='num_participants', y='amount_meetups', rot=0)
 ax.get_legend().remove()
 plt.yscale('log')
-plt.title('Meetup size distribution')
+plt.title('Meetup size distribution', pad=15)
 plt.xlabel('Number of participants')
 plt.ylabel('Number of meetups')
-plt.savefig(f'plots/meetup_size_distribution_{BENCHMARK_NAME}.png')
+plt.savefig(f'plots/meetup_size_distribution_{BENCHMARK_NAME}.png', dpi=300)
 plt.clf()
 
 max_newbie_ratio = max(newbie_ratios.keys())
 i = 0.0
 while i <= max_newbie_ratio:
-    i = round(i,2)
+    i = round(i, 2)
     if not i in newbie_ratios.keys():
         newbie_ratios[i] = 0
     i += 0.01
@@ -56,14 +56,13 @@ df = df.sort_values('newbie_ratio')
 ax = df.plot.bar(x='newbie_ratio', y='amount_meetups', rot=0)
 ax.get_legend().remove()
 
-
 ax.set_xticklabels([t if not i % 5 else "" for i, t in enumerate(ax.get_xticklabels())])
 
 plt.yscale('log')
-plt.title('Newbie ratio distribution')
+plt.title('Newbie ratio distribution', pad=15)
 plt.xlabel('Newbie ratio')
 plt.ylabel('Number of meetups')
-plt.savefig(f'plots/newbie_ratio_distribution_{BENCHMARK_NAME}.png')
+plt.savefig(f'plots/newbie_ratio_distribution_{BENCHMARK_NAME}.png', dpi=300)
 plt.clf()
 
 # analyze data
@@ -111,10 +110,10 @@ ax = sns.heatmap(df_heatmap, cmap=sns.cubehelix_palette(start=.5, rot=-.5, as_cm
                  linecolor='white', norm=LogNorm(), cbar_kws={'label': 'Number of ceremony phases'})
 ax.invert_yaxis()
 plt.yscale('linear')
-plt.title('Bounds on meetup size for simulated meetup assignments')
+plt.title('Bounds on meetup size for simulated meetup assignments', pad=15)
 plt.xlabel('Minimum Meetup Size')
 plt.ylabel('Maximum Meetup Size')
-plt.savefig(f'plots/meetup_size_bounds_{BENCHMARK_NAME}.png')
+plt.savefig(f'plots/meetup_size_bounds_{BENCHMARK_NAME}.png', dpi=300)
 plt.clf()
 
 # analyze skips
@@ -133,13 +132,13 @@ max_skips = df1['num_skips'].max()
 plt.hist(df1, range(-1, max_skips + 2), align='left', edgecolor='black', linewidth=1)
 plt.xticks(range(0, max_skips + 2, 2))
 plt.yscale('log')
-plt.xlim([-0.5, max_skips+1.5])
+plt.xlim([-0.5, max_skips + 1.5])
 
-plt.title('Distribution loop iterations for bad prime number configurations')
+plt.title('Distribution loop iterations for bad prime number configurations', pad=15)
 plt.xlabel('Number of loop iterations')
 plt.ylabel('Count')
 
-plt.savefig(f'plots/skip_distribution_{BENCHMARK_NAME}.png')
+plt.savefig(f'plots/skip_distribution_{BENCHMARK_NAME}.png', dpi=300)
 plt.clf()
 
 print(f"""
