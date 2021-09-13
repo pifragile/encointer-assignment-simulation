@@ -104,7 +104,6 @@ else:
 print(f'Number of simulated assignments check:{sum(output.values())}')
 
 df_count = df.groupby(['min_length', 'max_length']).size().reset_index()
-
 df_heatmap = df_count.pivot(index='max_length', columns='min_length', values=0)
 ax = sns.heatmap(df_heatmap, cmap=sns.cubehelix_palette(start=.5, rot=-.5, as_cmap=True), linewidths=0.5,
                  linecolor='white', norm=LogNorm(), cbar_kws={'label': 'Number of ceremony phases'})
