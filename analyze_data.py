@@ -109,7 +109,7 @@ df_heatmap = df_count.pivot(index='max_length', columns='min_length', values=0)
 ax = sns.heatmap(df_heatmap, cmap=sns.cubehelix_palette(start=.5, rot=-.5, as_cmap=True), linewidths=0.5,
                  linecolor='white', norm=LogNorm(), cbar_kws={'label': 'Number of ceremony phases'})
 ax.invert_yaxis()
-plt.yscale('linear')
+#plt.yscale('linear')
 plt.title('Bounds on meetup size for simulated meetup assignments', pad=15)
 plt.xlabel('Minimum Meetup Size')
 plt.ylabel('Maximum Meetup Size')
