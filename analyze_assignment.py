@@ -5,7 +5,7 @@ import os
 import random
 import time
 
-BENCHMARK_NAME = 'no_prime'
+BENCHMARK_NAME = 'no_prime_large'
 NUM_BENCHMARKS = 48
 BENCHMARK_SIZE = 10
 
