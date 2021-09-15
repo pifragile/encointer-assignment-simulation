@@ -5,9 +5,7 @@ import os
 import random
 import time
 
-from primes import primes
-
-BENCHMARK_NAME = 'run_test'
+BENCHMARK_NAME = 'no_prime'
 NUM_BENCHMARKS = 48
 BENCHMARK_SIZE = 8
 
@@ -22,6 +20,7 @@ class bcolors:
     ENDC = '\033[0m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
+
 
 ###
 ###
@@ -215,8 +214,8 @@ def get_N_s1_s3(num_participants, num_locations):
     # per meetup is num_participants // num_locations + 1
     skip_count = 0
     while True:
-        s1 = random.choice(primes)
-        s2 = random.choice(primes)
+        s1 = random.randint(1, N - 1)
+        s2 = random.randint(1, N - 1)
         if validate_equal_mapping(num_participants, N, num_locations, s1, s2):
             break
         else:
@@ -462,7 +461,6 @@ if __name__ == '__main__':
 
     meetup_length_counter = merge_dicts(meetup_length_counters)
     newbie_ratio_counter = merge_dicts(newbie_ratio_counters)
-
 
     with open(os.path.join('data', f'meetup_lengths_{BENCHMARK_NAME}.csv'), 'w') as csv_file:
         writer = csv.writer(csv_file)
