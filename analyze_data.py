@@ -134,7 +134,7 @@ plt.xticks(range(0, max_skips + 2, 2))
 plt.yscale('log')
 plt.xlim([-0.5, max_skips + 1.5])
 
-plt.title('Distribution loop iterations for bad prime number configurations', pad=15)
+plt.title('Distribution loop iterations for bad configurations of s1 and s2', pad=15)
 plt.xlabel('Number of loop iterations')
 plt.ylabel('Count')
 
