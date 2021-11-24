@@ -7,6 +7,7 @@ import seaborn as sns
 from matplotlib.colors import LogNorm
 
 from analyze_assignment import BENCHMARK_NAME
+import sys
 
 with open(os.path.join('data', f'meetup_lengths_{BENCHMARK_NAME}.csv')) as csv_file:
     reader = csv.reader(csv_file)
